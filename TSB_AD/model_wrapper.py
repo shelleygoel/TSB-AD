@@ -408,7 +408,6 @@ def run_M2N2(
 
 def run_TSPulse_ZS(data, 
                    model="ibm-granite/granite-timeseries-tspulse-r1",
-                   num_input_channels=1,
                    win_size=96,
                    batch_size=256,
                    smoothing_window=8,
@@ -416,6 +415,7 @@ def run_TSPulse_ZS(data,
                    **kwargs,
                    ):
     from TSB_AD.models.TSPulse import TSPulsePipeline
+    num_input_channels = data.shape[1]
     clf = TSPulsePipeline(
             model_path=model,
             num_input_channels=num_input_channels,
@@ -430,7 +430,6 @@ def run_TSPulse_ZS(data,
 def run_TSPulse_FT(data_train,
                    data_test,
                    model="ibm-granite/granite-timeseries-tspulse-r1",
-                   num_input_channels=1,
                    win_size=96,
                    batch_size=256,
                    smoothing_window=8,
@@ -442,6 +441,8 @@ def run_TSPulse_FT(data_train,
                    lr=1e-4,
                    **kwargs):
     from TSB_AD.models.TSPulse import TSPulsePipeline
+    num_input_channels = data_train.shape[1]
+
     clf = TSPulsePipeline(
             model_path=model,
             num_input_channels=num_input_channels,
