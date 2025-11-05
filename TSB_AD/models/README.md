@@ -16,6 +16,13 @@ If you want to use [TimesFM](https://github.com/google-research/timesfm), please
 pip install timesfm[torch]
 ```
 
+If you want to use [TSPulse](https://github.com/ibm-granite/granite-tsfm/tree/main/tsfm_public/models/tspulse), please install the following commands
+```bash
+git clone "https://github.com/ibm-granite/granite-tsfm.git" 
+cd granite-tsfm
+pip install ".[notebooks]"
+```
+
 If you want to use [Lag-Llama](https://github.com/time-series-foundation-models/lag-llama), please install the following
 ```bash
 gluonts[torch]<=0.14.4
