@@ -33,6 +33,9 @@ if __name__ == '__main__':
     parser.add_argument('--data_direc', type=str, default='Datasets/TSB-AD-U/')
     parser.add_argument('--save', type=bool, default=False)
     parser.add_argument('--AD_Name', type=str, default='IForest')
+    
+    # Optional argument to enable mode selection for TSPulse
+    parser.add_argument('--prediction_mode', type=str, default='#') 
     args = parser.parse_args()
 
     df = pd.read_csv(args.data_direc + args.filename).dropna()
@@ -43,6 +46,9 @@ if __name__ == '__main__':
     train_index = args.filename.split('.')[0].split('_')[-3]
     data_train = data[:int(train_index), :]
     Optimal_Det_HP = Optimal_Uni_algo_HP_dict[args.AD_Name]
+    
+    if ('prediction_mode' in Optimal_Det_HP) and (args.prediction_mode != "#"):
+        Optimal_Det_HP['prediction_mode'] = args.prediction_mode
 
     if args.AD_Name in Semisupervise_AD_Pool:
         output = run_Semisupervise_AD(args.AD_Name, data_train, data, **Optimal_Det_HP)

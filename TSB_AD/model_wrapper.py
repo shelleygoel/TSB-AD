@@ -3,9 +3,9 @@ import math
 from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
-                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'MOMENT_ZS']
+                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'MOMENT_ZS', 'TSPulse_ZS']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
-                        'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2']
+                        'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT']
 
 def run_Unsupervise_AD(model_name, data, **kwargs):
     try:
@@ -401,6 +401,60 @@ def run_M2N2(
         gamma=gamma, th=th, valid_size=valid_size,
         infer_mode=infer_mode
     )
+    clf.fit(data_train)
+    score = clf.decision_function(data_test)
+    return score.ravel()
+
+
+def run_TSPulse_ZS(data, 
+                   model="ibm-granite/granite-timeseries-tspulse-r1",
+                   num_input_channels=1,
+                   win_size=96,
+                   batch_size=256,
+                   smoothing_window=8,
+                   prediction_mode="time",
+                   **kwargs,
+                   ):
+    from TSB_AD.models.TSPulse import TSPulsePipeline
+    clf = TSPulsePipeline(
+            model_path=model,
+            num_input_channels=num_input_channels,
+            batch_size=batch_size,
+            aggr_win_size=win_size,
+            smoothing_window=smoothing_window,
+            prediction_mode=prediction_mode,
+        )
+    score = clf.decision_function(data)
+    return score.ravel()
+
+def run_TSPulse_FT(data_train,
+                   data_test,
+                   model="ibm-granite/granite-timeseries-tspulse-r1",
+                   num_input_channels=1,
+                   win_size=96,
+                   batch_size=256,
+                   smoothing_window=8,
+                   prediction_mode="time",
+                   decoder_mode="common_channels",
+                   num_epochs=20,
+                   freeze_backbone=False,
+                   validation_fraction=0.2,
+                   lr=1e-4,
+                   **kwargs):
+    from TSB_AD.models.TSPulse import TSPulsePipeline
+    clf = TSPulsePipeline(
+            model_path=model,
+            num_input_channels=num_input_channels,
+            batch_size=batch_size,
+            aggr_win_size=win_size,
+            smoothing_window=smoothing_window,
+            prediction_mode=prediction_mode,
+            finetune_decoder_mode=decoder_mode,
+            finetune_validation=validation_fraction,
+            finetune_freeze_backbone=freeze_backbone,
+            finetune_epochs=num_epochs,
+            finetune_lr=lr,
+        )
     clf.fit(data_train)
     score = clf.decision_function(data_test)
     return score.ravel()
