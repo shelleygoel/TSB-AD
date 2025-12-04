@@ -2,6 +2,7 @@
 # Author: Qinghua Liu <liu.11085@osu.edu>
 # License: Apache-2.0 License
 
+import os
 import pandas as pd
 import torch
 import random, argparse
@@ -25,6 +26,48 @@ print("CUDA Available: ", torch.cuda.is_available())
 print("cuDNN Version: ", torch.backends.cudnn.version())
 
 
+def get_dataset_name(filename: str):
+    file_basename = os.path.basename(filename)
+    return file_basename.split("_")[1]
+
+
+def select_best_mode_by_dataset(filename: str, 
+                                target_col: str = "file_name",
+                                metric_col: str = "VUS-PR",
+                                mode_col: str = "MODE",
+                                greater_is_better: bool = True,
+                                ):
+    df = pd.read_csv(filename, sep=',', header='infer', index_col=None)
+    performance = {}
+    counter = {}
+    for target_file, metric, mode in zip(df[target_col], df[metric_col], df[mode_col]):
+        dset_name = get_dataset_name(target_file)
+        if dset_name not in performance:
+            performance[dset_name] = {}
+            counter[dset_name] = {}
+        
+        if mode not in performance[dset_name]:
+            performance[dset_name][mode] = 0
+            counter[dset_name][mode] = 0
+        
+        performance[dset_name][mode] += float(metric)
+        counter[dset_name][mode] += 1
+    
+    best_metric = {}
+    for dset_name in performance:
+        mode_names = []
+        mode_performance = []
+        for mode in performance[dset_name]:
+            mode_names.append(mode)
+            mode_performance.append(performance[dset_name][mode] / counter[dset_name][mode])
+        if greater_is_better:
+            index = np.argmax(mode_performance)
+        else:
+            index = np.argmin(mode_performance)
+        best_metric[dset_name] = mode_names[index]
+    return best_metric
+
+
 if __name__ == '__main__':
 
     ## ArgumentParser
@@ -35,7 +78,15 @@ if __name__ == '__main__':
     parser.add_argument('--AD_Name', type=str, default='IForest')
     
     # Optional argument to enable mode selection for TSPulse
-    parser.add_argument('--prediction_mode', type=str, default='#') 
+    parser.add_argument('--tuning_results', 
+                        type=str, 
+                        default=None, 
+                        help="Provide the resource file with tuning data experiment results. "
+                             "Required by TSPulse algorithm for optimal data dependent mode selection.")
+    parser.add_argument('--prediction_mode', 
+                        type=str, 
+                        default='#', 
+                        help="Mode specification for TSPulse algorithm.") 
     args = parser.parse_args()
 
     df = pd.read_csv(args.data_direc + args.filename).dropna()
@@ -47,8 +98,13 @@ if __name__ == '__main__':
     data_train = data[:int(train_index), :]
     Optimal_Det_HP = Optimal_Uni_algo_HP_dict[args.AD_Name]
     
-    if ('prediction_mode' in Optimal_Det_HP) and (args.prediction_mode != "#"):
-        Optimal_Det_HP['prediction_mode'] = args.prediction_mode
+    if 'prediction_mode' in Optimal_Det_HP: 
+        if args.prediction_mode != "#":
+            Optimal_Det_HP['prediction_mode'] = args.prediction_mode
+        elif (args.tuning_results is not None) and os.path.isfile(args.tuning_results):
+            lookup = select_best_mode_by_dataset(args.tuning_results)
+            dset_name = get_dataset_name(args.filename)
+            Optimal_Det_HP['prediction_mode'] = lookup.get(dset_name, 'time')
 
     if args.AD_Name in Semisupervise_AD_Pool:
         output = run_Semisupervise_AD(args.AD_Name, data_train, data, **Optimal_Det_HP)
