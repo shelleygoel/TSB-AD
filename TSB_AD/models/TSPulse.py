@@ -38,7 +38,7 @@ class TSPulsePipeline(BaseDetector):
         aggr_win_size: int = 96,
         num_input_channels: int = 1,
         smoothing_window: int = 8,
-        prediction_mode: str = "forecast+time+fft",
+        prediction_mode: str = "time",
         finetune_epochs: int = 20,
         finetune_validation: float = 0.2,
         finetune_lr: float = 1e-4,
