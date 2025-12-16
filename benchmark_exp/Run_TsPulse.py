@@ -360,6 +360,13 @@ if __name__ == '__main__':
         'win_size': 96, 
         'prediction_mode': 'time'
     }
+    
+    if args.prediction_mode != "#":
+        Custom_AD_HP['prediction_mode'] = args.prediction_mode
+    elif (args.tuning_results is not None) and os.path.isfile(args.tuning_results):
+        lookup = select_best_mode_by_dataset(args.tuning_results)
+        dset_name = get_dataset_name(args.filename)
+        Custom_AD_HP['prediction_mode'] = lookup.get(dset_name, 'time')
 
     df = pd.read_csv(args.data_direc + args.filename).dropna()
     data = df.iloc[:, 0:-1].values.astype(float)
