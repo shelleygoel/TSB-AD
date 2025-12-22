@@ -271,5 +271,10 @@ Optimal_Uni_algo_HP_dict = {
     'TimesFM': {'win_size': 96},
     'MOMENT_ZS': {'win_size': 64},
     'MOMENT_FT': {'win_size': 64},
-    'M2N2': {}
+    'M2N2': {},
+    'TSPulse_ZS': {'win_size': 96, 
+                   'prediction_mode': 'time'},
+    'TSPulse_FT': {'win_size': 96, 
+                   'prediction_mode': 'time',
+                   'lr': 1e-4},
 }
