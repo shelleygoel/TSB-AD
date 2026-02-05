@@ -53,9 +53,12 @@ def run_Sub_IForest(data, periodicity=1, n_estimators=100, max_features=1, n_job
     score = clf.decision_scores_
     return score.ravel()
 
-def run_IForest(data, slidingWindow=100, n_estimators=100, max_features=1, n_jobs=1):
+def run_IForest(data, slidingWindow=100, n_estimators=100, max_features=1, n_jobs=1, contamination=0.1, normalize=True):
     from .models.IForest import IForest
-    clf = IForest(slidingWindow=slidingWindow, n_estimators=n_estimators, max_features=max_features, n_jobs=n_jobs)
+    clf = IForest(slidingWindow=slidingWindow, n_estimators=n_estimators, max_features=max_features, 
+                  n_jobs=n_jobs, 
+                  contamination=contamination,
+                  normalize=normalize)
     clf.fit(data)
     score = clf.decision_scores_
     return score.ravel()
